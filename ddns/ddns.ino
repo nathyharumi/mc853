@@ -16,10 +16,20 @@ bool hostConnect(const char* host, int port) {
   return true;
 }
 
+void sendRequestToServer(const char* host) {
+  // This will send the request to the server
+  client.print(String("GET /") + " HTTP/1.1\r\n" +
+               "Host: " + host + "\r\n" +
+               "Connection: close\r\n\r\n");
+  delay(10);
+}
+
 String getWebpage() {
+  Serial.println("Getting the webpage content");
   String webpage = "";
   while (!client.available()) {
-    delay(1);
+    Serial.print(".");
+    delay(1000);
   }
   while (client.available()) {
     String line = client.readStringUntil('\r');
@@ -28,6 +38,7 @@ String getWebpage() {
 }
 
 String getIp(String webpage) {
+  Serial.println(webpage);
   return webpage;
 }
 
@@ -82,7 +93,7 @@ void loop() {
     if (!hostConnect(identmeHost, identmePort)) {
       return;
     }
-
+    sendRequestToServer(identmeHost);
     // Get the IP from the ident.me
     ip = getIp(getWebpage());
 
