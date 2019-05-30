@@ -4,53 +4,14 @@
 WiFiClient client;
 
 String ip = "";
-int test = 1;
-bool hostConnect(const char* host, int port) {
-  Serial.print("Connecting to ");
-  Serial.println(host);
-  if (!client.connect(host, port)) {
-    Serial.println("connection failed");
-    delay (5000);
-    return false;
-  }
-  return true;
-}
-
-void sendRequestToServer(const char* host) {
-  // This will send the request to the server
-  client.print(String("GET /") + " HTTP/1.1\r\n" +
-               "Host: " + host + "\r\n" +
-               "Connection: close\r\n\r\n");
-  delay(10);
-}
-
-String getWebpage() {
-  Serial.println("Getting the webpage content");
-  String webpage = "";
-  while (!client.available()) {
-    Serial.print(".");
-    delay(1000);
-  }
-  while (client.available()) {
-    String line = client.readStringUntil('\r');
-    webpage += line;
-  }
-}
 
 String getIp(String webpage) {
-  Serial.println(webpage);
+  String webip = webpage.substring(webpage.lastIndexOf("."));
+  Serial.println(webip);
   return webpage;
 }
 
-void sendIP() {
-  client.println(ip);
-  Serial.println("Sent to Xaveco: " + client.readString());
-}
-
 void setup() {
-  Serial.println(test);
-  test += 1;
-  Serial.println(test);
   // WiFi parameters
   const char* ssid = "aula-ic3";
   const char* password = "iotic@2019";
@@ -78,7 +39,6 @@ void setup() {
 }
 
 void loop() {
-  Serial.println(test);
   // Host to get the IP
   const char* identmeHost = "ident.me";
   const int identmePort = 80;
@@ -89,24 +49,45 @@ void loop() {
 
   // Only connects to ident.me if it does not know the IP or if reseted
   if (ip.length() == 0) {
+    
     // Connect to the ident.me
-    if (!hostConnect(identmeHost, identmePort)) {
+    if (!client.connect(identmeHost, identmePort)) {
+      Serial.println("connection failed");
+      delay (5000);
       return;
     }
-    sendRequestToServer(identmeHost);
-    // Get the IP from the ident.me
-    ip = getIp(getWebpage());
+    // This will send the request to the server
+    client.print(String("GET /") + " HTTP/1.1\r\n" +
+                 "Host: " + identmeHost + "\r\n" +
+                 "Connection: close\r\n\r\n");
+    delay(10);
+
+    // Get the all html content from the ident.me
+    String webpage = "";
+    while (!client.available()) {
+      delay(1);
+    }
+    while (client.available()) {
+      String line = client.readStringUntil('\r');
+      webpage += line;
+    }
+
+    // Get the IP from the webpage content
+    ip = getIp(webpage);
 
     // Close connection
     client.stop();
   }
-  // Connect to Xaveco
-  if (!hostConnect(xavecoHost, xavecoPort)) {
-    return;
-  }
+  
+    // Connect to the Xaveco Server
+    if (!client.connect(xavecoHost, xavecoPort)) {
+      Serial.println("connection failed");
+      delay (5000);
+      return;
+    }
 
-  // Send IP to Xaveco
-  sendIP();
+    // Send IP to Xaveco
+    client.println(ip);
 
   client.stop();
 
