@@ -5,12 +5,6 @@ WiFiClient client;
 
 String ip = "";
 
-String getIp(String webpage) {
-  String webip = webpage.substring(webpage.lastIndexOf("."));
-  Serial.println(webip);
-  return webpage;
-}
-
 void setup() {
   // WiFi parameters
   const char* ssid = "aula-ic3";
@@ -33,8 +27,8 @@ void setup() {
   }
   Serial.println("");
   Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
+  //Serial.println("IP address: ");
+  //Serial.println(WiFi.localIP());
 
 }
 
@@ -49,7 +43,7 @@ void loop() {
 
   // Only connects to ident.me if it does not know the IP or if reseted
   if (ip.length() == 0) {
-    
+
     // Connect to the ident.me
     if (!client.connect(identmeHost, identmePort)) {
       Serial.println("connection failed");
@@ -73,21 +67,32 @@ void loop() {
     }
 
     // Get the IP from the webpage content
-    ip = getIp(webpage);
+    String webpage_lines = webpage;
+    int ip1 = 0, ip2 = 0, ip3 = 0, ip4 = 0;
+    int index = 0;
+
+    sscanf(webpage_lines.c_str(), "%d.%d.%d.%d", &ip1, &ip2, &ip3, &ip4);
+    while (ip1 == 0 && ip2 == 0 && ip3 == 0 && ip4 == 0 && index > -1) {
+      index = webpage_lines.indexOf("\n");
+      webpage_lines = webpage_lines.substring(index + 1);
+      sscanf(webpage_lines.c_str(), "%d.%d.%d.%d", &ip1, &ip2, &ip3, &ip4);
+    }
+    ip = String(ip1) + String('.') + String(ip2) + String('.') + String(ip3) + String('.') + String(ip4);
+    Serial.println(ip);
 
     // Close connection
     client.stop();
   }
-  
-    // Connect to the Xaveco Server
-    if (!client.connect(xavecoHost, xavecoPort)) {
-      Serial.println("connection failed");
-      delay (5000);
-      return;
-    }
 
-    // Send IP to Xaveco
-    client.println(ip);
+  // Connect to the Xaveco Server
+  if (!client.connect(xavecoHost, xavecoPort)) {
+    Serial.println("connection failed");
+    delay (5000);
+    return;
+  }
+
+  // Send IP to Xaveco
+  client.println(ip);
 
   client.stop();
 
