@@ -1,9 +1,17 @@
 // Import required libraries
 #include <ESP8266WiFi.h>
+#define MINUTES 60000000
 
 WiFiClient client;
 
 String ip = "";
+
+inline void print_connection(const char* host, const int port){
+  Serial.print("Conectando ao host ");
+  Serial.print(host);
+  Serial.print(", porta ");
+  Serial.println(port); 
+}
 
 void setup() {
   // WiFi parameters
@@ -17,7 +25,7 @@ void setup() {
   // We start by connecting to a WiFi network
   Serial.println();
   Serial.println();
-  Serial.print("Connecting to ");
+  Serial.print("WIFI conectando a");
   Serial.println(ssid);
 
   WiFi.begin(ssid, password);
@@ -26,10 +34,7 @@ void setup() {
     Serial.print(".");
   }
   Serial.println("");
-  Serial.println("WiFi connected");
-  //Serial.println("IP address: ");
-  //Serial.println(WiFi.localIP());
-
+  Serial.println("WiFi conectado");
 }
 
 void loop() {
@@ -38,15 +43,16 @@ void loop() {
   const int identmePort = 80;
 
   // Host to send the IP
-  const char* xavecoHost = "";
+  const char* xavecoHost = "143.106.16.163";
   const int xavecoPort = 50007;
 
   // Only connects to ident.me if it does not know the IP or if reseted
   if (ip.length() == 0) {
 
     // Connect to the ident.me
+    print_connection(identmeHost, identmePort);
     if (!client.connect(identmeHost, identmePort)) {
-      Serial.println("connection failed");
+      Serial.println("Falha de conexão.");
       delay (5000);
       return;
     }
@@ -78,22 +84,29 @@ void loop() {
       sscanf(webpage_lines.c_str(), "%d.%d.%d.%d", &ip1, &ip2, &ip3, &ip4);
     }
     ip = String(ip1) + String('.') + String(ip2) + String('.') + String(ip3) + String('.') + String(ip4);
+    Serial.print("IP obtido pelo host: ");
     Serial.println(ip);
 
     // Close connection
     client.stop();
+  } else {
+    Serial.print("IP obtido anteriormente: ");
+    Serial.print(ip);
+    Serial.println("; Sem necessidade de obtenção do IP novamente.");
   }
 
   // Connect to the Xaveco Server
+  print_connection(xavecoHost, xavecoPort);
   if (!client.connect(xavecoHost, xavecoPort)) {
-    Serial.println("connection failed");
+    Serial.println("Falha de conexão.");
     delay (5000);
     return;
   }
 
   // Send IP to Xaveco
-  client.println(ip);
-
+  client.print(ip);
   client.stop();
+  Serial.println("IP enviado com sucesso. Repouso de 15 minutos.");
+  ESP.deepSleep(15 * MINUTES,WAKE_NO_RFCAL); // convert to microsecs
 
 }
