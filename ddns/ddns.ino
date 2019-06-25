@@ -107,6 +107,7 @@ void loop() {
   client.print(ip);
   client.stop();
   Serial.println("IP enviado com sucesso. Repouso de 15 minutos.");
-  ESP.deepSleep(15 * MINUTES,WAKE_NO_RFCAL); // convert to microsecs
+  ESP.deepSleep(5*MINUTES/60,WAKE_NO_RFCAL);
+  //ESP.deepSleep(15 * MINUTES,WAKE_NO_RFCAL); // convert to microsecs
 
 }

@@ -1,5 +1,6 @@
 # Echo server program
 import socket
+import datetime
 
 HOST = ''                 # Symbolic name meaning all available interfaces
 PORT = 50007              # Arbitrary non-privileged port
@@ -19,16 +20,20 @@ while 1:
 
     print("Received:",data)
 
+    now = datetime.datetime.now()
+
     html_string = """\
 <html>
 
     <head>
+        <meta http-equiv="refresh" content="5" >
         <meta charset="UTF-8">
         <title>MC853</title>
     </head>
 
     <body>
-        """ + str(data) + """
+        <p>""" + str(data) + """</p>
+        <p>Updated: """ + str(now.isoformat(sep=' ')[:-7]) + """</p>
     </body>
 
 </html>"""
