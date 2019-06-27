@@ -5,8 +5,9 @@
 import socket
 import datetime
 import sys
+import os
 
-DEFAULT_PATH =  "/home/ec2015/ra175188/public_html/ddns.html" # html page path
+DEFAULT_PATH =  os.path.expanduser('~/public_html/ddns.html') # html page path
 HOST = ''                 # Symbolic name meaning all available interfaces
 PORT = 50007              # Arbitrary non-privileged port
 BUFFER_SIZE = 15
