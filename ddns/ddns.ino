@@ -5,6 +5,7 @@
 WiFiClient client;
 
 String ip = "";
+int connection_retries = 0;
 
 inline void print_connection(const char* host, const int port){
   Serial.print("Conectando ao host ");
@@ -89,6 +90,9 @@ void loop() {
 
     // Close connection
     client.stop();
+  } else if (connection_retries >= 10) {
+    Serial.println("10 falhas de conexão ao servidor DDNS. Repouso por 15 minutos.");
+    ESP.deepSleep(15*MINUTES,WAKE_NO_RFCAL);
   } else {
     Serial.print("IP obtido anteriormente: ");
     Serial.print(ip);
@@ -99,6 +103,7 @@ void loop() {
   print_connection(xavecoHost, xavecoPort);
   if (!client.connect(xavecoHost, xavecoPort)) {
     Serial.println("Falha de conexão.");
+    connection_retries += 1;
     delay (5000);
     return;
   }
@@ -107,7 +112,6 @@ void loop() {
   client.print(ip);
   client.stop();
   Serial.println("IP enviado com sucesso. Repouso de 15 minutos.");
-  ESP.deepSleep(5*MINUTES/60,WAKE_NO_RFCAL);
-  //ESP.deepSleep(15 * MINUTES,WAKE_NO_RFCAL); // convert to microsecs
+  ESP.deepSleep(15 * MINUTES,WAKE_NO_RFCAL);
 
 }
